@@ -21,7 +21,7 @@ public class MinioStorage {
 
     public MinioStorage() {
         try {
-            this.minioClient = new MinioClient("http://127.0.0.1:9000", "TXQQN8JAJASJ2C8LOZIO","XuKKEMo+oRMjmUV1rup6KKjQ4TQEBfQdT7RtOv6A");
+            this.minioClient = new MinioClient("http://127.0.0.1:9000", "NL4WQJS00YICDGY33652","Q6vui3w70M4OhMyS70e5P6jxGCsF7d0Oefy2zxjT");
         } catch (InvalidEndpointException e) {
             e.printStackTrace();
         } catch (InvalidPortException e) {
@@ -47,7 +47,7 @@ public class MinioStorage {
                 minioClient.makeBucket(bucketName);
             }
 
-            minioClient.putObject(bucketName, id+"-"+fileMetadata.getFile().getName(), folder + "\\" + fileMetadata.getFile().getName());
+            minioClient.putObject(bucketName, id+"-"+fileMetadata.getFile().getName(), folder + "\\encrypted-" + fileMetadata.getFile().getName());
             //System.out.println("Upload successful");
             return true;
 
