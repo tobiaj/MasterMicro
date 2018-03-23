@@ -21,7 +21,7 @@ public class MinioStorage {
 
     public MinioStorage() {
         try {
-            this.minioClient = new MinioClient("http://127.0.0.1:9000", "NL4WQJS00YICDGY33652","Q6vui3w70M4OhMyS70e5P6jxGCsF7d0Oefy2zxjT");
+            this.minioClient = new MinioClient("http://127.0.0.1:9000", "PZ1KE1344KA040RSV62N","uAUp9c3W30zf+vH2JeOcuNC+rjfmLRg73Rew05TA");
         } catch (InvalidEndpointException e) {
             e.printStackTrace();
         } catch (InvalidPortException e) {

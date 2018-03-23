@@ -1,0 +1,20 @@
+
+mvn package && java -jar target/fileservice-0.1.0.jar
+
+mvn install dockerfile:build
+
+docker run -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -p 3306:3306 mysql:latest
+
+CREATE TABLE IF NOT EXISTS `fileholder` (
+  `NAME` varchar(25) NOT NULL,
+  `ENCRYPTIONKEY` varchar(255) NOT NULL,
+  `FILENAME` varchar(50) NOT NULL,
+  `FILE_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `UUID` varchar(255) NOT NULL,
+  PRIMARY KEY (`UUID`),
+  UNIQUE KEY `ID` (`FILE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+COMMIT;
+
+
+
