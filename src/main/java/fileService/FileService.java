@@ -32,7 +32,6 @@ public class FileService implements FileServiceInterface {
     }
 
 
-    @Override
     public String storeFile(String name, MultipartFile multipartFile) {
 
         File file = extractFile(multipartFile);
@@ -77,8 +76,6 @@ public class FileService implements FileServiceInterface {
 
 
     public File retrieveFile(String nameID, String fileID){
-
-
 
         String result = databaseHandler.retrieveEncryptionkey(nameID, fileID);
         String[] split = result.split(",");
