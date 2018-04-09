@@ -18,6 +18,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
+import java.util.List;
 
 public class FileService implements FileServiceInterface {
 
@@ -39,14 +40,35 @@ public class FileService implements FileServiceInterface {
         FileMetadata fileMetadata = new FileMetadata(name);
         fileMetadata.setFile(file);
 
+
+        if (minioStorage.uploadToStorage(fileMetadata, false)){
+
+            databaseHandler.storeFileInformation(fileMetadata);
+
+            return "Done upload";
+        }
+
+
+        return "Failed";
+
+    }
+
+    @Override
+    public String storeSafeFile(String name, MultipartFile multipartFile) {
+
+        File file = extractFile(multipartFile);
+
+        FileMetadata fileMetadata = new FileMetadata(name);
+        fileMetadata.setFile(file);
+
         try {
 
             aes.processEncrypt(fileMetadata);
             System.out.println("Done encryption");
 
-            if (minioStorage.uploadToStorage(fileMetadata)){
+            if (minioStorage.uploadToStorage(fileMetadata, true)){
 
-                databaseHandler.storeKeys(fileMetadata);
+                databaseHandler.storeFileInformation( fileMetadata);
 
                 return "Done upload";
             }
@@ -71,16 +93,70 @@ public class FileService implements FileServiceInterface {
         }
 
         return "Failed";
+    }
+
+    @Override
+    public String deleteFile(String id, String fileID) {
+
+        String result = databaseHandler.getFileInformation(id, fileID);
+        String[] split = result.split(",");
+
+        FileMetadata fileMetadata = new FileMetadata(id);
+        fileMetadata.setFileName(split[0]);
+        fileMetadata.setUUID(split[1]);
+
+        if (minioStorage.deleteFile(fileMetadata) && databaseHandler.removeFile(fileMetadata.getUUID())){
+            return "File: " + fileMetadata.getFileName() + " is deleted";
+        }
+
+        return null;
 
     }
 
+    @Override
+    public List<String> getFiles(String id) {
 
-    public File retrieveFile(String nameID, String fileID){
+        return databaseHandler.getFiles(id);
 
-        String result = databaseHandler.retrieveEncryptionkey(nameID, fileID);
+    }
+
+    @Override
+    public List<String> getSafeFiles(String id) {
+
+        return databaseHandler.getSafeFiles(id);
+
+    }
+
+    @Override
+    public List<String> getNoneSafeFiles(String id) {
+
+        return databaseHandler.getNoneSafe(id);
+
+    }
+
+    @Override
+    public File getFile(String id, String name) {
+        String result = databaseHandler.getFileInformation(id, name);
         String[] split = result.split(",");
 
-        FileMetadata fileMetadata = new FileMetadata(nameID);
+        FileMetadata fileMetadata = new FileMetadata(id);
+        fileMetadata.setFileName(split[0]);
+        fileMetadata.setUUID(split[1]);
+
+        if (minioStorage.retrieveFromStorage(fileMetadata)) {
+            return fileMetadata.getFile();
+
+        }
+
+        return null;
+    }
+
+    @Override
+    public File getSafeFile(String id, String name) {
+        String result = databaseHandler.getFileInformationAndKey(id, name);
+        String[] split = result.split(",");
+
+        FileMetadata fileMetadata = new FileMetadata(id);
         fileMetadata.setEncryptionkey(split[0]);
         fileMetadata.setFileName(split[1]);
         fileMetadata.setUUID(split[2]);
@@ -114,6 +190,7 @@ public class FileService implements FileServiceInterface {
 
         return null;
     }
+
 
     private File extractFile(MultipartFile file)
     {

@@ -2,10 +2,8 @@ package fileService.database;
 
 import fileService.FileMetadata;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.PersistenceException;
+import javax.persistence.*;
+import java.sql.Date;
 import java.util.List;
 
 public class DatabaseHandler {
@@ -13,9 +11,15 @@ public class DatabaseHandler {
 
     private static EntityManagerFactory emFactory;
 
-    public String storeKeys(FileMetadata fileMetadata){
+    public String storeFileInformation(FileMetadata fileMetadata){
 
-        FileEntity fileEntity = new FileEntity(fileMetadata.getName(), fileMetadata.getEncryptionkey(), fileMetadata.getFile().getName(), fileMetadata.getUUID());
+        long time = System.currentTimeMillis();
+        Date date = new Date(time);
+
+        FileEntity fileEntity = new FileEntity(fileMetadata.getName(), fileMetadata.getFile().getName(), fileMetadata.getUUID(), date);
+        if(fileMetadata.getEncryptionkey() != null){
+            fileEntity.setENCRYPTIONKEY(fileMetadata.getEncryptionkey());
+        }
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
 
 
@@ -37,13 +41,31 @@ public class DatabaseHandler {
 
     }
 
-    public String retrieveEncryptionkey(String nameID, String fileID){
+
+    public String getFileInformation(String nameID, String fileID){
 
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
 
         int id = Integer.parseInt(fileID);
 
-        List<String> result = em.createNamedQuery("retrieveEncryptionkey")
+        List<String> result = em.createNamedQuery("getFileInformation")
+                .setParameter("nameID", nameID)
+                .setParameter("fileID", id)
+                .getResultList();
+
+        if (!result.isEmpty()){
+
+            return result.get(0);
+        }
+        return "";
+    }
+
+    public String getFileInformationAndKey(String nameID, String fileID) {
+        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+
+        int id = Integer.parseInt(fileID);
+
+        List<String> result = em.createNamedQuery("getFileInformationWithKey")
                 .setParameter("nameID", nameID)
                 .setParameter("fileID", id)
                 .getResultList();
@@ -54,6 +76,70 @@ public class DatabaseHandler {
             return result.get(0);
         }
         return "";
+    }
+
+    public List<String> getNoneSafe(String id) {
+
+        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+
+        List<String> result = em.createNamedQuery("getNoneSafeFiles")
+                .setParameter("nameID", id)
+                .getResultList();
+
+
+        if (!result.isEmpty()){
+
+            return result;
+        }
+        return null;
+    }
+
+    public List<String> getSafeFiles(String id) {
+
+        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+
+        List<String> result = em.createNamedQuery("getSafeFiles")
+                .setParameter("nameID", id)
+                .getResultList();
+
+
+        if (!result.isEmpty()){
+
+            return result;
+        }
+        return null;
+    }
+
+    public List<String> getFiles(String id) {
+
+        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+
+        List<String> result = em.createNamedQuery("getAllFiles")
+                .setParameter("nameID", id)
+                .getResultList();
+
+
+        if (!result.isEmpty()){
+
+            return result;
+        }
+        return null;
+    }
+
+    public boolean removeFile(String uuid) {
+
+        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+
+        em.getTransaction().begin();
+        Query query = em.createQuery("Delete from FileEntity entity where entity.UUID = :uuid");
+        query.setParameter("uuid", uuid);
+        int rows = query.executeUpdate();
+        em.getTransaction().commit();
+        if (rows > 0 ){
+            return true;
+        }
+
+        return false;
     }
 
 
